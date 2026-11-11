@@ -4,7 +4,7 @@
 and history, shows you what you actually play and what you've forgotten, helps you plan a set around your own best
 transitions, and finds music that fits it.
 
-Works on Mac and Windows, with rekordbox 6 or 7 and any MIDI controller. Your library stays on your computer.
+Works on Mac and Windows, with rekordbox 6 or 7 and any MIDI controller. Your library stays on your computer. **[blendbook.app](https://blendbook.app)**
 
 - **Plan your set:** pick an opener and an energy shape, and Blendbook builds the set from transitions you've proven
   before, then sends it to rekordbox as a playlist.
