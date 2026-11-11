@@ -1,4 +1,9 @@
-# Blendbook
+<h1>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/logo-dark.svg">
+    <img alt="Blendbook" src=".github/logo-light.svg" width="288" height="60">
+  </picture>
+</h1>
 
 **For dance music and techno DJs who want better taste and better sets.** Blendbook reads your real rekordbox library
 and history, shows you what you actually play and what you've forgotten, helps you plan a set around your own best

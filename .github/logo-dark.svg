@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="384" height="80" viewBox="0 0 384 80" role="img" aria-label="Blendbook">
+  <defs>
+    <linearGradient id="blend" x1="0" x2="1">
+      <stop offset="0" stop-color="#5ac8fa"/>
+      <stop offset="1" stop-color="#ff9f0a"/>
+    </linearGradient>
+  </defs>
+  <circle cx="40" cy="40" r="27.5" fill="none" stroke="url(#blend)" stroke-width="17.5"/>
+  <text x="94" y="60" fill="#f4f5f7" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI Variable Display', 'Segoe UI', system-ui, sans-serif" font-size="56" font-weight="700" letter-spacing="-1.2">Blendbook</text>
+</svg>
