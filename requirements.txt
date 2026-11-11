@@ -1,0 +1,5 @@
+# Pinned to the versions Blendbook is tested with. Upgrade on purpose, not by accident.
+pyrekordbox==0.5.0
+anthropic==1.15.0
+numpy==2.5.4
+truststore==0.10.5  # online.py: the Mac's own certificates for HTTPS to the music catalogs

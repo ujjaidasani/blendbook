@@ -1,0 +1,61 @@
+/* Blendbook design tokens. Every module styles itself with these, never raw colors. */
+:root {
+  color-scheme: dark;
+  --bg: #0b0c0f;
+  --surface: #14161b;
+  --surface-2: #1b1e25;
+  --surface-3: #242833;
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.16);
+  --fg: #f2f3f5;
+  --fg-2: #c3c7d0;
+  --muted: #8a909c;
+  --accent: #5ac8fa;        /* deck 1 / primary */
+  --accent-2: #ff9f0a;      /* deck 2 */
+  --good: #30d158;
+  --warn: #ffd60a;
+  --bad: #ff453a;
+  --info: #bf5af2;
+  --accent-soft: rgba(90, 200, 250, 0.14);
+  --accent-2-soft: rgba(255, 159, 10, 0.14);
+  --good-soft: rgba(48, 209, 88, 0.14);
+  --warn-soft: rgba(255, 214, 10, 0.14);
+  --bad-soft: rgba(255, 69, 58, 0.14);
+
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", "Inter", system-ui, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable Display", "Segoe UI", "Inter", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 22px;
+
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 140ms;
+  --dur: 220ms;
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --line: rgba(255, 255, 255, 0.28);
+    --line-strong: rgba(255, 255, 255, 0.5);
+    --muted: #b5bac4;
+    --fg-2: #e3e5ea;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur: 0ms;
+  }
+}

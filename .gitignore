@@ -1,0 +1,18 @@
+# Each person's own data: library copy, Blendbook database, API key, recordings
+.cache/
+Recordings/
+# Local environment and tooling
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+.claude/
+.gstack/
+# Working notes and the old prototype (its database is a copy of a real library)
+briefs/
+legacy/
+
+# App builds
+build/
+dist/
+packaging/Blendbook.icns

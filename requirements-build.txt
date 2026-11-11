@@ -1,0 +1,7 @@
+# What it takes to build the Mac and Windows apps, on top of requirements.txt
+pyinstaller==6.22.3
+pystray==0.19.5  # menu bar / tray icon
+pillow==13.0.0
+dmgbuild==1.6.7  # the Mac installer window
+ds_store==1.3.3
+mac_alias==2.2.3

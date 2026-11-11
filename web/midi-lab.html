@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Blendbook MIDI lab</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font);
+      font-size: 1rem;
+      line-height: 1.5;
+      touch-action: manipulation;
+    }
+    main {
+      max-width: 60rem;
+      margin: 0 auto;
+      padding: var(--s-4);
+    }
+    h1 {
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 4vw, 2rem);
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      font-weight: 650;
+      margin: 0 0 var(--s-2);
+    }
+    h2 {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      line-height: 1.3;
+      letter-spacing: -0.01em;
+      font-weight: 650;
+      margin: 0 0 var(--s-3);
+    }
+    p { margin: 0; }
+    .lede { color: var(--fg-2); max-width: 42rem; }
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--r-lg);
+      padding: var(--s-4);
+      margin-top: var(--s-4);
+    }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--s-3);
+      align-items: end;
+    }
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-1);
+      color: var(--fg-2);
+      font-size: 0.9rem;
+      min-width: 0;
+    }
+    label span.val {
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+      font-family: var(--font-mono);
+    }
+    .grow { flex: 1 1 14rem; }
+    select, button, input[type="range"] { font: inherit; }
+    select, button {
+      min-height: 44px;
+      border-radius: var(--r-sm);
+      border: 1px solid var(--line-strong);
+      background: var(--surface-2);
+      color: var(--fg);
+      padding: 0 var(--s-3);
+    }
+    select { width: 100%; }
+    button { cursor: pointer; }
+    button.primary {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+      font-weight: 650;
+    }
+    button:active { transform: scale(0.98); }
+    button[aria-pressed="true"] {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+    }
+    button.d2[aria-pressed="true"] {
+      background: var(--accent-2-soft);
+      border-color: var(--accent-2);
+    }
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+    input[type="range"] {
+      width: 100%;
+      height: 44px;
+      accent-color: var(--accent);
+      margin: 0;
+    }
+    input[type="range"].d2 { accent-color: var(--accent-2); }
+    .status {
+      margin-top: var(--s-3);
+      color: var(--fg-2);
+    }
+    .status strong { color: var(--fg); font-weight: 650; }
+    .banner {
+      background: var(--bad-soft);
+      color: var(--bad);
+      border: 1px solid var(--bad);
+      border-radius: var(--r-md);
+      padding: var(--s-3) var(--s-4);
+      font-weight: 650;
+      margin-bottom: var(--s-4);
+    }
+    [hidden] { display: none !important; }
+    .strips {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+      gap: var(--s-4);
+    }
+    .deck {
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      border-radius: var(--r-md);
+      padding: var(--s-4);
+    }
+    .deck-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--s-2);
+      margin-bottom: var(--s-3);
+    }
+    .deck-name { font-weight: 650; }
+    .d1 .deck-name { color: var(--accent); }
+    .d2 .deck-name { color: var(--accent-2); }
+    .play-pill {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.04em;
+      padding: var(--s-1) var(--s-2);
+      border-radius: var(--r-sm);
+      background: var(--surface-3);
+      color: var(--muted);
+    }
+    .d1 .play-pill.on { background: var(--accent-soft); color: var(--accent); }
+    .d2 .play-pill.on { background: var(--accent-2-soft); color: var(--accent-2); }
+    .knobs {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--s-2);
+      margin-bottom: var(--s-3);
+    }
+    .knob { text-align: center; min-width: 0; }
+    .knob svg { width: 100%; height: auto; display: block; }
+    .arc-track, .arc-value {
+      fill: none;
+      stroke-width: 3.5;
+      stroke-linecap: round;
+    }
+    .arc-track { stroke: var(--surface-3); }
+    .d1 .arc-value { stroke: var(--accent); }
+    .d2 .arc-value { stroke: var(--accent-2); }
+    .knob .name {
+      display: block;
+      color: var(--muted);
+      font-size: 0.72rem;
+      letter-spacing: 0.04em;
+    }
+    .knob .num {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .fader-wrap {
+      display: flex;
+      align-items: center;
+      gap: var(--s-3);
+    }
+    .fader {
+      position: relative;
+      width: 0.7rem;
+      height: 8.5rem;
+      border-radius: var(--r-xl);
+      background: var(--surface-3);
+      flex: none;
+    }
+    .fader-fill {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 0%;
+      border-radius: var(--r-xl);
+    }
+    .d1 .fader-fill { background: var(--accent); }
+    .d2 .fader-fill { background: var(--accent-2); }
+    .meta { color: var(--muted); font-size: 0.85rem; }
+    .xf {
+      margin-top: var(--s-4);
+    }
+    .xf-track {
+      position: relative;
+      height: 0.7rem;
+      border-radius: var(--r-xl);
+      background: linear-gradient(90deg, var(--accent), var(--surface-3) 50%, var(--accent-2));
+      margin: var(--s-2) 0;
+    }
+    .xf-thumb {
+      position: absolute;
+      top: 50%;
+      width: 1.1rem;
+      height: 1.6rem;
+      border-radius: var(--r-sm);
+      background: var(--fg);
+      transform: translate(-50%, -50%);
+      left: 50%;
+    }
+    .xf-scale, .blend-line {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--s-2);
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+    .blend-line { color: var(--fg-2); margin-top: var(--s-2); }
+    .log, .raw-wrap { max-height: 18rem; overflow: auto; }
+    ol.events, .empty {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    ol.events li {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: var(--s-3);
+      padding: var(--s-2) 0;
+      border-bottom: 1px solid var(--line);
+    }
+    time {
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-variant-numeric: tabular-nums;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+    }
+    th, td {
+      text-align: left;
+      padding: var(--s-2);
+      border-bottom: 1px solid var(--line);
+      white-space: nowrap;
+    }
+    th {
+      font-family: var(--font);
+      color: var(--muted);
+      font-weight: 650;
+      position: sticky;
+      top: 0;
+      background: var(--surface);
+    }
+    td.label { font-family: var(--font); white-space: normal; }
+    .sim-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+      gap: var(--s-4);
+    }
+    .plays { display: flex; flex-wrap: wrap; gap: var(--s-3); margin-top: var(--s-4); }
+    .hint { color: var(--muted); margin-top: var(--s-3); font-size: 0.9rem; }
+    @media (prefers-reduced-motion: reduce) {
+      button:active { transform: none; }
+    }
+    @media (max-width: 24rem) {
+      main { padding: var(--s-3); }
+      .knobs { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--s-1); }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>MIDI lab</h1>
+      <p class="lede">Listen to a DDJ-FLX4 while rekordbox is using it, or drive the mixer from the simulator. Move one control at a time and check the raw table against the map.</p>
+    </header>
+
+    <section class="panel" aria-labelledby="conn-heading">
+      <h2 id="conn-heading">Connection</h2>
+      <div class="row">
+        <label class="grow" for="midi-input">MIDI input
+          <select id="midi-input">
+            <option value="">Auto (name contains FLX4 or DDJ)</option>
+          </select>
+        </label>
+        <button type="button" class="primary" id="connect">Connect</button>
+      </div>
+      <p class="status" id="status" role="status">Not connected. The simulator works without hardware.</p>
+    </section>
+
+    <section class="panel" aria-labelledby="mix-heading">
+      <h2 id="mix-heading">Mixer</h2>
+      <div class="banner" id="bass-banner" role="status" hidden>Bass clash. Both lows are up.</div>
+      <div class="strips">
+        <article class="deck d1" aria-label="Deck 1">
+          <div class="deck-head">
+            <span class="deck-name">Deck 1</span>
+            <span class="play-pill" id="play-1">Stopped</span>
+          </div>
+          <div class="knobs">
+            <div class="knob" id="knob-1-trim"></div>
+            <div class="knob" id="knob-1-hi"></div>
+            <div class="knob" id="knob-1-mid"></div>
+            <div class="knob" id="knob-1-low"></div>
+          </div>
+          <div class="fader-wrap">
+            <div class="fader" id="fader-1" role="img" aria-label="Deck 1 channel fader 0 percent">
+              <div class="fader-fill"></div>
+            </div>
+            <p class="meta" id="meta-1">Fader 0% · audible no · jog off</p>
+          </div>
+        </article>
+        <article class="deck d2" aria-label="Deck 2">
+          <div class="deck-head">
+            <span class="deck-name">Deck 2</span>
+            <span class="play-pill" id="play-2">Stopped</span>
+          </div>
+          <div class="knobs">
+            <div class="knob" id="knob-2-trim"></div>
+            <div class="knob" id="knob-2-hi"></div>
+            <div class="knob" id="knob-2-mid"></div>
+            <div class="knob" id="knob-2-low"></div>
+          </div>
+          <div class="fader-wrap">
+            <div class="fader" id="fader-2" role="img" aria-label="Deck 2 channel fader 0 percent">
+              <div class="fader-fill"></div>
+            </div>
+            <p class="meta" id="meta-2">Fader 0% · audible no · jog off</p>
+          </div>
+        </article>
+      </div>
+      <div class="xf">
+        <div class="xf-scale"><span>Deck 1</span><span id="xf-read">Crossfader centered</span><span>Deck 2</span></div>
+        <div class="xf-track" id="xf-track" role="img" aria-label="Crossfader centered">
+          <div class="xf-thumb" id="xf-thumb"></div>
+        </div>
+        <p class="blend-line" id="blend-line">No blend in progress.</p>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="log-heading">
+      <h2 id="log-heading">Events</h2>
+      <div class="log">
+        <p class="empty" id="log-empty">No events yet. Move a control or run the demo.</p>
+        <ol class="events" id="event-log" aria-live="polite"></ol>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="raw-heading">
+      <h2 id="raw-heading">Raw MIDI</h2>
+      <div class="raw-wrap">
+        <p class="empty" id="raw-empty">No messages yet.</p>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Time</th>
+              <th scope="col">Status</th>
+              <th scope="col">Data 1</th>
+              <th scope="col">Data 2</th>
+              <th scope="col">Label</th>
+            </tr>
+          </thead>
+          <tbody id="raw-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="sim-heading">
+      <h2 id="sim-heading">Simulator</h2>
+      <div class="sim-grid">
+        <label for="sim-fader-1">Deck 1 fader <span class="val" id="sim-fader-1-val">0%</span>
+          <input id="sim-fader-1" type="range" min="0" max="1" step="0.001" value="0">
+        </label>
+        <label for="sim-fader-2">Deck 2 fader <span class="val" id="sim-fader-2-val">0%</span>
+          <input id="sim-fader-2" class="d2" type="range" min="0" max="1" step="0.001" value="0">
+        </label>
+        <label for="sim-low-1">Deck 1 LOW <span class="val" id="sim-low-1-val">50%</span>
+          <input id="sim-low-1" type="range" min="0" max="1" step="0.001" value="0.5">
+        </label>
+        <label for="sim-low-2">Deck 2 LOW <span class="val" id="sim-low-2-val">50%</span>
+          <input id="sim-low-2" class="d2" type="range" min="0" max="1" step="0.001" value="0.5">
+        </label>
+        <label class="grow" for="sim-xf">Crossfader <span class="val" id="sim-xf-val">Center</span>
+          <input id="sim-xf" type="range" min="0" max="1" step="0.001" value="0.5">
+        </label>
+      </div>
+      <div class="plays">
+        <button type="button" id="sim-play-1" aria-pressed="false">Play deck 1</button>
+        <button type="button" class="d2" id="sim-play-2" aria-pressed="false">Play deck 2</button>
+        <button type="button" class="primary" id="demo">Run demo transition</button>
+      </div>
+      <p class="hint" id="demo-status">Demo is a 30 second blend with a bass swap, played at 5× so it finishes in about 6 seconds.</p>
+    </section>
+  </main>
+
+  <script type="module">
+    import { createFlx4Monitor, FLX4_MAP } from "./js/midi.js";
+
+    const byId = new Map(FLX4_MAP.map((entry) => [entry.id, entry]));
+    const ARC_R = 16;
+    const ARC_LEN = 2 * Math.PI * ARC_R * 0.75;
+
+    const els = {
+      status: document.getElementById("status"),
+      input: document.getElementById("midi-input"),
+      connect: document.getElementById("connect"),
+      banner: document.getElementById("bass-banner"),
+      blend: document.getElementById("blend-line"),
+      xfRead: document.getElementById("xf-read"),
+      xfTrack: document.getElementById("xf-track"),
+      xfThumb: document.getElementById("xf-thumb"),
+      log: document.getElementById("event-log"),
+      logEmpty: document.getElementById("log-empty"),
+      raw: document.getElementById("raw-body"),
+      rawEmpty: document.getElementById("raw-empty"),
+      demo: document.getElementById("demo"),
+      demoStatus: document.getElementById("demo-status"),
+    };
+
+    const sim = {
+      "d1.fader": document.getElementById("sim-fader-1"),
+      "d2.fader": document.getElementById("sim-fader-2"),
+      "d1.low": document.getElementById("sim-low-1"),
+      "d2.low": document.getElementById("sim-low-2"),
+      crossfader: document.getElementById("sim-xf"),
+    };
+    const simVal = {
+      "d1.fader": document.getElementById("sim-fader-1-val"),
+      "d2.fader": document.getElementById("sim-fader-2-val"),
+      "d1.low": document.getElementById("sim-low-1-val"),
+      "d2.low": document.getElementById("sim-low-2-val"),
+      crossfader: document.getElementById("sim-xf-val"),
+    };
+
+    let demoToken = 0;
+    let latest = null;
+
+    const mon = createFlx4Monitor({
+      onState: paint,
+      onEvent: pushEvent,
+      onStatus: paintStatus,
+      onRaw: pushRaw,
+    });
+
+    function hex(n) {
+      return "0x" + n.toString(16).toUpperCase().padStart(2, "0");
+    }
+
+    function pct(n) {
+      return Math.round(clamp01(n) * 100) + "%";
+    }
+
+    function clamp01(n) {
+      return Math.min(1, Math.max(0, n));
+    }
+
+    function clock(ts) {
+      const d = new Date(ts);
+      return [d.getHours(), d.getMinutes(), d.getSeconds()]
+        .map((part) => String(part).padStart(2, "0"))
+        .join(":");
+    }
+
+    function knob(deck, key, name) {
+      const host = document.getElementById(`knob-${deck}-${key}`);
+      host.innerHTML = `
+        <svg viewBox="0 0 40 40" aria-hidden="true">
+          <circle class="arc-track" cx="20" cy="20" r="16" pathLength="100" stroke-dasharray="75 100" transform="rotate(135 20 20)"></circle>
+          <circle class="arc-value" cx="20" cy="20" r="16" pathLength="100" stroke-dasharray="0 100" transform="rotate(135 20 20)"></circle>
+        </svg>
+        <span class="name">${name}</span>
+        <span class="num">50%</span>`;
+      return {
+        arc: host.querySelector(".arc-value"),
+        num: host.querySelector(".num"),
+      };
+    }
+
+    const knobs = {
+      1: {
+        trim: knob(1, "trim", "TRIM"),
+        hi: knob(1, "hi", "HI"),
+        mid: knob(1, "mid", "MID"),
+        low: knob(1, "low", "LOW"),
+      },
+      2: {
+        trim: knob(2, "trim", "TRIM"),
+        hi: knob(2, "hi", "HI"),
+        mid: knob(2, "mid", "MID"),
+        low: knob(2, "low", "LOW"),
+      },
+    };
+
+    function setArc(arc, value) {
+      const shown = (ARC_LEN / (2 * Math.PI * ARC_R)) * 100 * clamp01(value);
+      arc.setAttribute("stroke-dasharray", `${shown} 100`);
+    }
+
+    function sendCc(id, value) {
+      const entry = byId.get(id);
+      const raw = Math.round(clamp01(value) * 16383);
+      mon.feed(entry.status, entry.lsb, raw & 127);
+      mon.feed(entry.status, entry.msb, (raw >> 7) & 127);
+    }
+
+    function sendPlay(deck) {
+      const entry = byId.get(deck === 1 ? "d1.play" : "d2.play");
+      mon.feed(entry.status, entry.note, 127);
+    }
+
+    function userTookControl() {
+      if (!demoToken) return;
+      demoToken = 0;
+      els.demo.disabled = false;
+      els.demoStatus.textContent = "Demo stopped. The sliders are yours.";
+    }
+
+    function wireSim(id, read) {
+      const input = sim[id];
+      const out = simVal[id];
+      const paintLabel = () => {
+        out.textContent = read(Number(input.value));
+      };
+      paintLabel();
+      input.addEventListener("input", () => {
+        userTookControl();
+        paintLabel();
+        sendCc(id, Number(input.value));
+      });
+    }
+
+    wireSim("d1.fader", pct);
+    wireSim("d2.fader", pct);
+    wireSim("d1.low", pct);
+    wireSim("d2.low", pct);
+    wireSim("crossfader", (value) => {
+      if (value < 0.08) return "Full deck 1";
+      if (value > 0.92) return "Full deck 2";
+      if (Math.abs(value - 0.5) < 0.04) return "Center";
+      return pct(value) + " toward deck 2";
+    });
+
+    document.getElementById("sim-play-1").addEventListener("click", () => {
+      userTookControl();
+      sendPlay(1);
+    });
+    document.getElementById("sim-play-2").addEventListener("click", () => {
+      userTookControl();
+      sendPlay(2);
+    });
+
+    els.connect.addEventListener("click", async () => {
+      els.connect.disabled = true;
+      await mon.start();
+      els.connect.disabled = false;
+      fillInputs();
+    });
+
+    els.input.addEventListener("change", () => {
+      if (els.input.value) mon.useInput(els.input.value);
+    });
+
+    els.demo.addEventListener("click", () => {
+      runDemo();
+    });
+
+    function fillInputs() {
+      const inputs = mon.listInputs();
+      const current = els.input.value;
+      const auto = els.input.querySelector("option[value='']");
+      els.input.replaceChildren(auto);
+      for (const input of inputs) {
+        const opt = document.createElement("option");
+        opt.value = input.id;
+        opt.textContent = input.name;
+        els.input.append(opt);
+      }
+      if ([...els.input.options].some((opt) => opt.value === current)) els.input.value = current;
+    }
+
+    function paintStatus(status) {
+      fillInputs();
+      if (status.deviceName) {
+        const match = [...els.input.options].find((opt) => opt.textContent === status.deviceName);
+        if (match) els.input.value = match.value;
+      }
+      if (!status.supported) {
+        els.status.textContent = status.error || "Web MIDI isn't available. The simulator still works.";
+        return;
+      }
+      if (status.error) {
+        els.status.textContent = status.error;
+        return;
+      }
+      if (status.connected) {
+        els.status.innerHTML = "";
+        const strong = document.createElement("strong");
+        strong.textContent = status.deviceName;
+        els.status.append("Connected to ", strong, ". Moving a control should show up below.");
+        return;
+      }
+      els.status.textContent = "MIDI is available. No FLX4 or DDJ input yet. Pick one, or use the simulator.";
+    }
+
+    function paint(state) {
+      latest = state;
+      els.banner.hidden = !state.bassClash;
+      for (const deck of [1, 2]) {
+        const d = state.decks[deck];
+        const play = document.getElementById(`play-${deck}`);
+        play.textContent = d.playing ? "Playing" : "Stopped";
+        play.classList.toggle("on", d.playing);
+        const button = document.getElementById(`sim-play-${deck}`);
+        button.setAttribute("aria-pressed", d.playing ? "true" : "false");
+        setArc(knobs[deck].trim.arc, d.trim);
+        setArc(knobs[deck].hi.arc, d.eq.hi);
+        setArc(knobs[deck].mid.arc, d.eq.mid);
+        setArc(knobs[deck].low.arc, d.eq.low);
+        knobs[deck].trim.num.textContent = pct(d.trim);
+        knobs[deck].hi.num.textContent = pct(d.eq.hi);
+        knobs[deck].mid.num.textContent = pct(d.eq.mid);
+        knobs[deck].low.num.textContent = pct(d.eq.low);
+        const fader = document.getElementById(`fader-${deck}`);
+        fader.querySelector(".fader-fill").style.height = pct(d.fader);
+        fader.setAttribute("aria-label", `Deck ${deck} channel fader ${pct(d.fader)}`);
+        document.getElementById(`meta-${deck}`).textContent =
+          `Fader ${pct(d.fader)} · audible ${d.audible ? "yes" : "no"} · jog ${d.jogTouched ? "on" : "off"}`;
+      }
+      els.xfRead.textContent = describeXf(state.crossfader);
+      els.xfTrack.setAttribute("aria-label", describeXf(state.crossfader));
+      els.xfThumb.style.left = pct(state.crossfader);
+      if (state.currentTransition) {
+        const tr = state.currentTransition;
+        els.blend.textContent =
+          `Blend deck ${tr.from} to deck ${tr.to} · ${tr.elapsedSec.toFixed(1)}s · bass overlap ${tr.bassOverlapSec.toFixed(1)}s · ${tr.eqMoves} EQ moves`;
+      } else {
+        els.blend.textContent = state.bothAudible ? "Both decks are audible." : "No blend in progress.";
+      }
+      syncSlider("d1.fader", state.decks[1].fader, pct);
+      syncSlider("d2.fader", state.decks[2].fader, pct);
+      syncSlider("d1.low", state.decks[1].eq.low, pct);
+      syncSlider("d2.low", state.decks[2].eq.low, pct);
+      syncSlider("crossfader", state.crossfader, (value) => describeXf(value));
+    }
+
+    function describeXf(value) {
+      if (value < 0.08) return "Full deck 1";
+      if (value > 0.92) return "Full deck 2";
+      if (Math.abs(value - 0.5) < 0.04) return "Crossfader centered";
+      return `Crossfader ${pct(value)} toward deck 2`;
+    }
+
+    function syncSlider(id, value, read) {
+      const input = sim[id];
+      if (document.activeElement === input) return;
+      input.value = String(value);
+      simVal[id].textContent = read(value);
+    }
+
+    function formatEvent(evt) {
+      if (evt.type === "play") return `Play deck ${evt.deck}`;
+      if (evt.type === "pause") return `Pause deck ${evt.deck}`;
+      if (evt.type === "transition_start") return `Transition started, deck ${evt.from} to deck ${evt.to}`;
+      if (evt.type === "transition_end") return `Transition ended. ${evt.verdict}`;
+      if (evt.type === "bass_clash") return `Bass clash held ${evt.durationSec.toFixed(1)}s`;
+      if (evt.type === "warning") return `${evt.message}`;
+      return evt.type;
+    }
+
+    function pushEvent(evt) {
+      els.logEmpty.hidden = true;
+      const li = document.createElement("li");
+      const time = document.createElement("time");
+      time.dateTime = new Date(evt.ts).toISOString();
+      time.textContent = clock(evt.ts);
+      const msg = document.createElement("span");
+      msg.textContent = formatEvent(evt);
+      li.append(time, msg);
+      els.log.prepend(li);
+      while (els.log.children.length > 50) els.log.lastElementChild.remove();
+    }
+
+    function pushRaw(msg) {
+      els.rawEmpty.hidden = true;
+      const tr = document.createElement("tr");
+      for (const text of [clock(msg.ts), hex(msg.status), hex(msg.data1), String(msg.data2), msg.label || "unmapped"]) {
+        const td = document.createElement("td");
+        if (text === (msg.label || "unmapped")) td.className = "label";
+        td.textContent = text;
+        tr.append(td);
+      }
+      els.raw.prepend(tr);
+      while (els.raw.children.length > 80) els.raw.lastElementChild.remove();
+    }
+
+    function wait(ms, token) {
+      return new Promise((resolve) => {
+        const start = performance.now();
+        function step(now) {
+          if (demoToken !== token) return resolve(false);
+          if (now - start >= ms) return resolve(true);
+          requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+      });
+    }
+
+    function glide(ms, token, fn) {
+      return new Promise((resolve) => {
+        const start = performance.now();
+        function step(now) {
+          if (demoToken !== token) return resolve(false);
+          const p = Math.min(1, (now - start) / ms);
+          fn(p);
+          if (p >= 1) return resolve(true);
+          requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+      });
+    }
+
+    async function runDemo() {
+      const token = ++demoToken;
+      els.demo.disabled = true;
+      els.demoStatus.textContent = "Demo running. 30 seconds of blend, sped up 5×.";
+      mon.reset();
+      mon.setPlaying(1, true);
+      sendCc("d1.fader", 1);
+      sendCc("d1.low", 0.85);
+      sendCc("d2.fader", 0);
+      sendCc("d2.low", 0.28);
+      sendCc("crossfader", 0);
+      if (!await wait(600, token)) return;
+      mon.setPlaying(2, true);
+      sendCc("d2.fader", 0.45);
+      sendCc("crossfader", 0.3);
+      const blended = await glide(2400, token, (p) => {
+        sendCc("crossfader", 0.3 + (0.5 - 0.3) * p);
+        sendCc("d2.fader", 0.45 + (0.92 - 0.45) * p);
+      });
+      if (!blended) return;
+      const swapped = await glide(1600, token, (p) => {
+        sendCc("d1.low", 0.85 + (0.22 - 0.85) * p);
+        sendCc("d2.low", 0.28 + (0.86 - 0.28) * p);
+      });
+      if (!swapped) return;
+      const ended = await glide(1400, token, (p) => {
+        sendCc("crossfader", 0.5 + 0.5 * p);
+        sendCc("d1.fader", 1 - p);
+      });
+      if (!ended) return;
+      if (demoToken === token) {
+        demoToken = 0;
+        els.demo.disabled = false;
+        els.demoStatus.textContent = "Demo finished. Check the event log for the transition verdict.";
+      }
+    }
+
+    mon.reset();
+  </script>
+</body>
+</html>

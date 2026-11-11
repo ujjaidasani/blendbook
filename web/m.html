@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0c0f" />
+  <meta name="format-detection" content="telephone=no" />
+  <title>Blendbook</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%235ac8fa'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%230b0c0f'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/app.css" />
+  <style>
+    body { font-size: 1rem; overflow-x: hidden; overscroll-behavior: none; }
+    .phone { padding: 0; margin: 0; max-width: none; min-height: 100dvh; outline: none; }
+    .phone:focus, .live:focus { outline: none; }
+
+    .pair {
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 18px;
+      padding:
+        max(24px, env(safe-area-inset-top))
+        max(20px, env(safe-area-inset-right))
+        max(24px, env(safe-area-inset-bottom))
+        max(20px, env(safe-area-inset-left));
+    }
+    .pair h1 { font-size: 1.75rem; letter-spacing: -0.03em; }
+    .pair .field { margin-top: 0; }
+    .pair .field span {
+      font-size: 1.0625rem;
+      line-height: 1.35;
+      color: var(--fg);
+      font-weight: 550;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+    .pair input {
+      font-family: var(--font-mono);
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 0.28em;
+      text-align: center;
+      min-height: 56px;
+      padding: 12px 8px 12px 0.28em;
+      caret-color: var(--accent);
+    }
+    .pair input[aria-invalid="true"] { border-color: var(--bad); }
+    .pair .btn { width: 100%; min-height: 48px; font-size: 1.0625rem; }
+    .err { color: var(--bad); font-size: 1rem; line-height: 1.35; margin: 0; }
+
+    .live {
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-bottom: max(8px, env(safe-area-inset-bottom));
+    }
+    .status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-height: 44px;
+      padding:
+        max(8px, env(safe-area-inset-top))
+        max(16px, env(safe-area-inset-right))
+        0
+        max(16px, env(safe-area-inset-left));
+    }
+    .conn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 650;
+      letter-spacing: -0.01em;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--muted);
+      box-shadow: 0 0 0 4px transparent;
+      flex: none;
+    }
+    .dot.ok { background: var(--good); box-shadow: 0 0 0 4px var(--good-soft); }
+    .dot.lost { background: var(--bad); box-shadow: 0 0 0 4px var(--bad-soft); }
+    .dot.idle { background: var(--muted); box-shadow: none; }
+
+    .bleed, .clash {
+      border-radius: 0;
+      justify-content: center;
+      text-align: center;
+      margin: 0;
+    }
+    .bleed {
+      font-size: 1rem;
+      font-weight: 650;
+      padding: 8px max(16px, env(safe-area-inset-right)) 8px max(16px, env(safe-area-inset-left));
+    }
+    .clash {
+      background: var(--bad);
+      color: #fff;
+      font: 700 1.35rem/1.15 var(--font-display);
+      letter-spacing: -0.02em;
+      padding: 10px max(16px, env(safe-area-inset-right)) 10px max(16px, env(safe-area-inset-left));
+    }
+
+    .now-card {
+      margin: 0 max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
+      padding: 10px 12px;
+    }
+    .phone .now-title {
+      font-size: 1.6rem;
+      line-height: 1.12;
+      letter-spacing: -0.03em;
+      margin-top: 0;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      overflow: hidden;
+      overflow-wrap: anywhere;
+    }
+    .phone .now-artist {
+      font-size: 1.0625rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .phone .now-meta {
+      margin: 8px 0 0;
+      font-size: 1.0625rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+    .phone .now-meta b { font-size: 1.35rem; font-weight: 700; }
+
+    .mix {
+      margin: 0 max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
+      padding: 8px 12px;
+      font-size: 1rem;
+      font-weight: 650;
+      font-variant-numeric: tabular-nums;
+      align-items: center;
+    }
+    .quiet {
+      margin: 0 max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
+      color: var(--muted);
+      font-size: 0.9375rem;
+    }
+
+    .phone .mixer {
+      margin: 0 max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
+      gap: 8px;
+    }
+    .phone .strip { padding: 6px 10px; }
+    .phone .strip h4 { font-size: 0.9375rem; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+    .phone .air { font-size: 0.9375rem; font-weight: 650; }
+    .phone .air.on { color: var(--good); }
+    .phone .air.play { color: var(--fg); }
+    .phone .air.stop { color: var(--muted); }
+    .phone .meter {
+      grid-template-columns: 1fr auto;
+      grid-template-rows: auto 8px;
+      gap: 4px 8px;
+      margin-top: 6px;
+      font-size: 0.9375rem;
+    }
+    .phone .meter > span:first-child { grid-column: 1; grid-row: 1; }
+    .phone .meter > span:last-child { grid-column: 2; grid-row: 1; text-align: right; color: var(--fg); font-weight: 650; }
+    .phone .meter .bar { grid-column: 1 / -1; grid-row: 2; height: 8px; }
+    .phone .meter .bar i { transition: width var(--dur) var(--ease-out); }
+
+    .slot-line {
+      margin: 0 max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
+      padding: 8px 12px;
+      border-radius: var(--r-md);
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      font-size: 1.0625rem;
+      line-height: 1.3;
+      font-weight: 650;
+      font-variant-numeric: tabular-nums;
+    }
+    .slot-line.warn { background: var(--warn-soft); border-color: transparent; color: var(--warn); }
+    .slot-line.bad { background: var(--bad-soft); border-color: transparent; color: var(--bad); }
+
+    /* set up before the set, so it sits at the bottom: if anything has to scroll off a small phone, it's this */
+    .slot-set {
+      margin: auto max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
+      padding-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+    /* 16px or more, or iOS zooms the page when the picker opens */
+    .slot-set input[type="time"] { font-size: 1.0625rem; font-weight: 650; min-height: 44px; min-width: 6.5em; }
+    .slot-clear { min-height: 44px; font-size: 1rem; }
+
+    .plan {
+      margin: 2px max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
+    }
+    .phone .plan .suggestion { padding: 8px 10px; }
+    .plan-eyebrow {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin: 0;
+      font-size: 0.9375rem;
+      font-weight: 650;
+      color: var(--accent);
+    }
+    .plan-eyebrow span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .plan-eyebrow span:last-child { flex: none; font-variant-numeric: tabular-nums; }
+    .phone .plan .track-title { font-size: 1.25rem; line-height: 1.2; font-weight: 700; letter-spacing: -0.01em; }
+    .phone .plan .delta { font-size: 1.125rem; font-weight: 650; color: var(--fg); }
+    .plan .quiet { margin: 0; }
+
+    .next {
+      margin: 2px max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
+    }
+    .next h2 { font-size: 1rem; letter-spacing: -0.01em; margin-bottom: 6px; }
+    .phone .suggestion { padding: 6px 10px; align-items: start; }
+    .phone .suggestion + .suggestion { margin-top: 6px; }
+    .phone .track-title { font-size: 1rem; }
+    .phone .suggestion.top .track-title { font-size: 1.125rem; }
+    .phone .track-meta {
+      font-size: 0.9375rem;
+      white-space: normal;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      overflow: hidden;
+    }
+    .next .quiet { margin: 0; }
+    .phone .suggestion .delta { font-size: 1rem; font-weight: 650; }
+    .sleep {
+      color: var(--muted);
+      font-size: 0.9375rem;
+      margin: 0;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .btn:active { transform: none; }
+      .phone .meter .bar i { transition: none; }
+    }
+    @media (prefers-contrast: more) {
+      .clash { box-shadow: inset 0 0 0 2px #fff; }
+      .dot { box-shadow: none; }
+      .slot-line { border-color: var(--line-strong); }
+      .slot-line.warn, .slot-line.bad { border-color: currentColor; }
+    }
+  </style>
+</head>
+<body>
+  <main class="phone" id="app">
+    <section id="pairView" class="pair" hidden>
+      <h1 class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-name">Blendbook</span>
+      </h1>
+      <form id="pairForm">
+        <label class="field" for="code">
+          <span>Enter the code shown in Blendbook on your laptop</span>
+          <input id="code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" enterkeyhint="go" autocapitalize="none" autocorrect="off" spellcheck="false" aria-describedby="pairError" aria-invalid="false" />
+        </label>
+        <p id="pairError" class="err" role="alert" hidden></p>
+        <button class="btn btn-primary" id="pairBtn" type="submit">Pair</button>
+      </form>
+    </section>
+
+    <section id="liveView" class="live" hidden tabindex="-1">
+      <header class="status">
+        <p class="conn" role="status">
+          <span id="dot" class="dot idle" aria-hidden="true"></span>
+          <span id="connLabel">Live</span>
+        </p>
+        <p id="sleepNote" class="sleep" hidden>Screen may sleep</p>
+      </header>
+      <div id="lostBanner" class="banner warn bleed" role="status" hidden>Lost connection, retrying…</div>
+      <div id="clashBanner" class="clash" role="alert" hidden>Both basses up</div>
+
+      <section class="card now-card" aria-labelledby="nowTitle">
+        <h1 id="nowTitle" class="now-title">Connecting…</h1>
+        <p id="nowArtist" class="now-artist" hidden></p>
+        <p id="nowMeta" class="now-meta" hidden><b id="nowBpm" class="num">—</b> BPM · <span id="nowGenre">—</span></p>
+      </section>
+
+      <p id="slotLine" class="slot-line" hidden></p>
+
+      <p id="mixLine" class="banner mix" hidden></p>
+      <p id="noController" class="quiet" hidden>No controller</p>
+
+      <div id="mixer" class="mixer" hidden>
+        <div class="strip d1" id="deck1">
+          <h4><b>Deck 1</b><span class="air stop">Stopped</span></h4>
+          <div class="meter vol">
+            <span>Fader</span>
+            <div class="bar" role="meter" aria-label="Deck 1 fader" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div>
+            <span class="num" data-val>0</span>
+          </div>
+          <div class="meter low">
+            <span>LOW</span>
+            <div class="bar" role="meter" aria-label="Deck 1 low" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div>
+            <span class="num" data-val>0</span>
+          </div>
+        </div>
+        <div class="strip d2" id="deck2">
+          <h4><b>Deck 2</b><span class="air stop">Stopped</span></h4>
+          <div class="meter vol">
+            <span>Fader</span>
+            <div class="bar" role="meter" aria-label="Deck 2 fader" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div>
+            <span class="num" data-val>0</span>
+          </div>
+          <div class="meter low">
+            <span>LOW</span>
+            <div class="bar" role="meter" aria-label="Deck 2 low" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div>
+            <span class="num" data-val>0</span>
+          </div>
+        </div>
+      </div>
+
+      <section id="plan" class="plan" aria-label="Your set plan" hidden>
+        <article id="planCard" class="suggestion top" hidden>
+          <p class="plan-eyebrow"><span id="planName"></span><span id="planCount"></span></p>
+          <div class="track-line">
+            <div id="planTitle" class="track-title"></div>
+            <div id="planMeta" class="track-meta"></div>
+          </div>
+          <div id="planDelta" class="delta num"></div>
+        </article>
+        <p id="planDone" class="quiet" hidden></p>
+      </section>
+
+      <section id="nextSection" class="next" aria-labelledby="nextHeading">
+        <h2 id="nextHeading">Play next</h2>
+        <div id="nextList">
+          <article class="suggestion top" hidden>
+            <div class="track-line">
+              <div class="track-title"></div>
+              <div class="track-meta"></div>
+            </div>
+            <div class="delta num"></div>
+          </article>
+          <article class="suggestion" hidden>
+            <div class="track-line">
+              <div class="track-title"></div>
+              <div class="track-meta"></div>
+            </div>
+            <div class="delta num"></div>
+          </article>
+          <article class="suggestion" hidden>
+            <div class="track-line">
+              <div class="track-title"></div>
+              <div class="track-meta"></div>
+            </div>
+            <div class="delta num"></div>
+          </article>
+        </div>
+        <p id="nextEmpty" class="quiet" hidden>Nothing close right now</p>
+      </section>
+
+      <footer class="slot-set">
+        <label for="slotEnd">Set ends at</label>
+        <input id="slotEnd" type="time" />
+        <button id="slotClear" class="btn btn-quiet slot-clear" type="button" aria-label="Clear the set end time" hidden>Clear</button>
+      </footer>
+    </section>
+  </main>
+  <script type="module" src="js/mobile.js"></script>
+</body>
+</html>
